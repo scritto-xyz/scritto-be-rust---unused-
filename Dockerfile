@@ -4,4 +4,4 @@ COPY ./ ./
 
 RUN cargo build --release
 
-RUN cargo run
+CMD ["./target/release/scritto"]
