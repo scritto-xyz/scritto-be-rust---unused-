@@ -8,7 +8,7 @@ CREATE TABLE railway.user
     country    VARCHAR(200)                        NOT NULL,
     state      VARCHAR(200)                        NOT NULL,
     city       VARCHAR(200)                        NOT NULL,
-    user_type  ENUM('artist', 'client')            NOT NULL,
+    user_type  ENUM('Artist', 'Client')            NOT NULL,
     created_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
     CONSTRAINT user_pk
