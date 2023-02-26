@@ -39,8 +39,7 @@ enum UserType {
 }
 
 #[derive(Deserialize)]
-struct User {
-    id: i32,
+struct CreateUser {
     first_name: String,
     last_name: String,
     email: String,
@@ -48,9 +47,7 @@ struct User {
     country: String,
     state: String,
     city: String,
-    user_type: UserType,
-    created_ts: DateTime<Utc>,
-    updated_ts: DateTime<Utc>,
+    user_type: UserType
 }
 
 
@@ -59,7 +56,7 @@ let str = "Hello, world!";
     return str;
 }
 
-async fn create_user_handler(Json(user): Json<User>) -> Json<Value> {
+async fn create_user_handler(Json(user): Json<CreateUser>) -> Json<Value> {
     let response_json: Json<Value> = Json(json!({
         "id": 1,
     }));
