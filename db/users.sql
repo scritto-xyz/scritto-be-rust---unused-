@@ -1,4 +1,4 @@
-CREATE TABLE railway.user
+CREATE TABLE railway.users
 (
     id         INT AUTO_INCREMENT,
     first_name VARCHAR(300)                        NOT NULL,
@@ -9,12 +9,12 @@ CREATE TABLE railway.user
     state      VARCHAR(200)                        NOT NULL,
     city       VARCHAR(200)                        NOT NULL,
     user_type  ENUM('Artist', 'Client')            NOT NULL,
-    created_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
     updated_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
     CONSTRAINT user_pk
         PRIMARY KEY (id)
 );
 
 CREATE UNIQUE INDEX user_email_uindex
-    ON railway.user (email);
+    ON railway.users (email);
 
