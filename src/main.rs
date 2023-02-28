@@ -1,13 +1,12 @@
+mod model;
+
 use std::net::SocketAddr;
 use std::env;
-use std::env::VarError;
 use axum::{
     routing::{get, post},
     Router,
     response::{Json},
 };
-use serde::Deserialize;
-use chrono::prelude::*;
 use http::StatusCode;
 use mysql::*;
 use mysql::prelude::*;
@@ -15,7 +14,6 @@ use serde_json::{Value, json};
 use tracing_subscriber;
 use tracing;
 use std::string::ToString;
-use strum_macros::Display;
 
 #[tokio::main]
 async fn main() {
@@ -35,39 +33,6 @@ async fn main() {
         .unwrap();
 }
 
-#[derive(Deserialize, Display, Debug, PartialEq, Eq)]
-enum UserType {
-    Artist,
-    Client
-}
-
-#[derive(Deserialize)]
-struct CreateUser {
-    first_name: String,
-    last_name: String,
-    email: String,
-    password: String,
-    country: String,
-    state: String,
-    city: String,
-    user_type: UserType
-}
-
-#[derive(Debug, PartialEq, Eq)]
-struct GetUser {
-    id: i32,
-    first_name: String,
-    last_name: String,
-    email: String,
-    password: String,
-    country: String,
-    state: String,
-    city: String,
-    user_type: UserType,
-    created_ts: DateTime<Utc>,
-    updated_ts: DateTime<Utc>,
-}
-
 async fn hello_world_handler() -> &'static str {
 let str = "Hello, world!";
     return str;
@@ -80,7 +45,7 @@ async fn get_conn() -> Result<PooledConn> {
     return conn;
 }
 
-async fn create_user_handler(Json(user): Json<CreateUser>) -> (StatusCode, Json<Value>) {
+async fn create_user_handler(Json(user): Json<model::CreateUser>) -> (StatusCode, Json<Value>) {
     let mut conn = get_conn().await.unwrap();
 
     // insert new user
