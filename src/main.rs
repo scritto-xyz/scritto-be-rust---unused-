@@ -1,5 +1,6 @@
 mod models;
 mod controllers;
+mod config;
 
 use std::net::SocketAddr;
 use std::env;
@@ -7,7 +8,6 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use mysql::*;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use tracing;
 use std::string::ToString;
@@ -25,6 +25,7 @@ async fn main() {
     let port = env::var("PORT").unwrap_or("8080".to_string()).parse::<u16>().unwrap();
 
     let cors = CorsLayer::new().allow_origin(Any);
+
 
     let app = Router::new()
         .route("/test", get(hello_world_handler))

@@ -1,4 +1,3 @@
-use std::env;
 use axum::{
     response::{Json},
 };
@@ -8,18 +7,12 @@ use mysql::prelude::*;
 use serde_json::{Value, json};
 
 use crate::{
-    models
+    models,
 };
-
-async fn get_conn() -> Result<PooledConn> {
-    let url = env::var("MYSQL_URL").expect("MYSQL URL env var not found");
-    let pool = Pool::new(&*url)?;
-    let conn = pool.get_conn();
-    return conn;
-}
+use crate::config::clients::mysql_client_get_conn;
 
 pub async fn register(Json(user): Json<models::users::CreateUser>) -> (StatusCode, Json<Value>) {
-    let mut conn = get_conn().await.expect("unable to connect to database");
+    let mut conn = mysql_client_get_conn().await.expect("unable to connect to database");
 
     // TODO ==> add logic for checking for existing email in table already
 
