@@ -1,23 +1,41 @@
-use axum::{
-    response::{Json},
-};
-use http::StatusCode;
-use mysql::*;
-use mysql::prelude::*;
+use axum::{extract::{State, Json}};
+use mysql::{params, Row};
+use mysql::Params::Positional;
+use mysql::prelude::Queryable;
 use serde_json::{Value, json};
 
-use crate::{
-    models,
-};
-use crate::config::clients::mysql_client_get_conn;
+use crate::{AppState, models};
+use crate::error::error::AppError;
 
-pub async fn register(Json(user): Json<models::users::CreateUser>) -> (StatusCode, Json<Value>) {
-    let mut conn = mysql_client_get_conn().await.expect("unable to connect to database");
+pub async fn register(
+    State(app_state): State<AppState>,
+    Json(user): Json<models::users::CreateUser>,
+) -> Result<Json<Value>, AppError> {
+    let conn_result = app_state.conn_pool.get_conn();
+    let mut conn = match conn_result {
+        Ok(c) => c,
+        Err(_) => return Err(AppError::InternalServerError),
+    };
 
-    // TODO ==> add logic for checking for existing email in table already
+
+    // check if email is already in db
+    if user.email.is_empty() {
+        return Err(AppError::InternalServerError);
+    }
+
+    let filtered_user_id: Option<Row> = conn.exec_first(
+        "SELECT id
+        FROM railway.users
+        WHERE email = ?
+    ", (&user.email,)
+    ).map_err(|_| AppError::InternalServerError)?;
+
+    if let Some(_) = filtered_user_id {
+        return Err(AppError::UserAlreadyExists);
+    }
 
     // insert new user
-    conn.exec_drop("
+    let _ = conn.exec_drop("
         INSERT INTO railway.users (
             first_name,
             last_name,
@@ -38,7 +56,11 @@ pub async fn register(Json(user): Json<models::users::CreateUser>) -> (StatusCod
         user.state,
         user.city,
         user.user_type.to_string(),
-    )).unwrap();
+    )).map_err(|_| AppError::InternalServerError)?;
+
+    if conn.affected_rows() < 1 {
+        return Err(AppError::InternalServerError);
+    }
 
     let id: Option<i32> = conn.query_first("SELECT LAST_INSERT_ID()")
         .expect("Returns the last inserted id");
@@ -46,5 +68,5 @@ pub async fn register(Json(user): Json<models::users::CreateUser>) -> (StatusCod
         "id": id,
     }));
 
-    return (StatusCode::CREATED, response_json);
+    Ok(response_json)
 }

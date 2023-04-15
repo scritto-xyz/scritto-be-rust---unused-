@@ -1,17 +1,23 @@
 mod models;
 mod controllers;
 mod config;
+mod error;
 
 use std::net::SocketAddr;
 use std::env;
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::{get, post}, Router};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use tracing;
 use std::string::ToString;
+use mysql::{Pool};
 use tower_http::cors::{Any, CorsLayer};
+use crate::config::clients::mysql_client_get_pool;
+
+
+#[derive(Clone)]
+pub struct AppState {
+    conn_pool: Pool
+}
 
 #[tokio::main]
 async fn main() {
@@ -26,10 +32,16 @@ async fn main() {
 
     let cors = CorsLayer::new().allow_origin(Any);
 
+    let conn = mysql_client_get_pool().await.expect("unable to connect to db");
+
+    let state = AppState {
+        conn_pool: conn
+    };
 
     let app = Router::new()
         .route("/test", get(hello_world_handler))
         .route("/register", post(controllers::auth::register))
+        .with_state(state)
         .layer(cors);
 
     let addr = SocketAddr::from(([0,0,0,0], port));
