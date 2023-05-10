@@ -1,7 +1,8 @@
 mod models;
-mod controllers;
+mod routes;
 mod config;
 mod error;
+mod utils;
 
 use std::net::SocketAddr;
 use std::env;
@@ -9,18 +10,21 @@ use axum::{routing::{get, post}, Router};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use tracing;
 use std::string::ToString;
+use dotenvy::dotenv;
 use mysql::{Pool};
+use sea_orm::DatabaseConnection;
 use tower_http::cors::{Any, CorsLayer};
 use crate::config::clients::mysql_client_get_pool;
 
 
 #[derive(Clone)]
 pub struct AppState {
-    conn_pool: Pool
+    conn: DatabaseConnection
 }
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
@@ -32,15 +36,13 @@ async fn main() {
 
     let cors = CorsLayer::new().allow_origin(Any);
 
-    let conn = mysql_client_get_pool().await.expect("unable to connect to db");
+    let conn = mysql_client_get_pool().await;
 
-    let state = AppState {
-        conn_pool: conn
-    };
+    let state = AppState { conn };
 
     let app = Router::new()
         .route("/test", get(hello_world_handler))
-        .route("/register", post(controllers::auth::register))
+        .route("/register", post(routes::auth::register))
         .with_state(state)
         .layer(cors);
 
@@ -55,6 +57,5 @@ async fn main() {
 }
 
 async fn hello_world_handler() -> &'static str {
-let str = "Hello, world!";
-    return str;
+    return "Hello, world!";
 }

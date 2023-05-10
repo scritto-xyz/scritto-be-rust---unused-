@@ -11,6 +11,7 @@ pub mod error {
         InternalServerError,
         UserDoesNotExist,
         UserAlreadyExists,
+        Unauthorized,
     }
 
     impl IntoResponse for AppError {
@@ -21,6 +22,7 @@ pub mod error {
                     "an internal server error occurred",
                     ),
                 Self::InvalidToken => (StatusCode::BAD_REQUEST, "invalid token"),
+                Self::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
                 Self::MissingCredential => (StatusCode::BAD_REQUEST, "missing credential"),
                 Self::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "failed to create token"),
                 Self::WrongCredential => (StatusCode::UNAUTHORIZED, "wrong credentials"),

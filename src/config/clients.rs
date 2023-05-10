@@ -1,8 +1,10 @@
 use std::env;
-use mysql::{Result, Pool};
+use dotenvy::dotenv;
+use sea_orm::{Database, DatabaseConnection};
 
 
-pub async fn mysql_client_get_pool() -> Result<Pool> {
-    let url = env::var("MYSQL_URL").expect("MYSQL URL env var not found");
-    return Pool::new(&*url);
+pub async fn mysql_client_get_pool() -> DatabaseConnection {
+    dotenv().ok();
+    let url = env::var("DATABASE_URL").expect("DATABASE_URL env var not found");
+    Database::connect(url).await.expect("Unable to establish db connection")
 }
